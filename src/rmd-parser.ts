@@ -41,6 +41,23 @@ export function parseChunkHeader(infoString: string): ChunkMeta | null {
 	return { engine, name, options };
 }
 
+/**
+ * Check whether an inline code span's text content represents inline R code.
+ * RMarkdown inline R uses the pattern: `r <expression>`
+ */
+export function isInlineRCode(text: string): boolean {
+	return /^r\s+\S/.test(text);
+}
+
+/**
+ * Extract the R expression from an inline R code span.
+ * Given "r 1 + 1", returns "1 + 1". Returns null if not inline R.
+ */
+export function extractInlineRExpression(text: string): string | null {
+	const match = text.match(/^r\s+(.+)$/);
+	return match ? match[1] : null;
+}
+
 /** Split a string by commas, but don't split inside quoted substrings. */
 function splitRespectingQuotes(str: string): string[] {
 	const result: string[] = [];
