@@ -1,0 +1,9 @@
+{
+	"id": "obsidian-rmarkdown",
+	"name": "RMarkdown Reader",
+	"version": "0.1.0",
+	"minAppVersion": "1.0.0",
+	"description": "Read and display RMarkdown (.rmd/.Rmd) files as markdown within Obsidian",
+	"author": "CUA CSS Research",
+	"isDesktopOnly": false
+}
