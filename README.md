@@ -22,7 +22,7 @@ An [Obsidian](https://obsidian.md) plugin that lets you browse, read, and edit R
 ### Manual Installation
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/jaskonas/obsidian-rmarkdown/releases/latest)
-2. Create a folder: `<your-vault>/.obsidian/plugins/obsidian-rmarkdown/`
+2. Create a folder: `<your-vault>/.obsidian/plugins/rmarkdown-reader/`
 3. Copy the three files into that folder
 4. Restart Obsidian and enable the plugin in **Settings → Community Plugins**
 

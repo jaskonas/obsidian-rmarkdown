@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-rmarkdown",
+	"id": "rmarkdown-reader",
 	"name": "RMarkdown Reader",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"minAppVersion": "1.0.0",
-	"description": "Read and display RMarkdown (.rmd/.Rmd) files as markdown within Obsidian",
+	"description": "Read and display RMarkdown (.rmd/.Rmd) files with R chunk highlighting and RStudio integration.",
 	"author": "jaskonas",
 	"authorUrl": "https://github.com/jaskonas",
 	"isDesktopOnly": true
