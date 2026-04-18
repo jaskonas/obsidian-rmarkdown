@@ -58,6 +58,35 @@ export function extractInlineRExpression(text: string): string | null {
 	return match ? match[1] : null;
 }
 
+/**
+ * Extract all R code chunks from an RMarkdown document source.
+ *
+ * Returns a single string with each R chunk preceded by a
+ * `# --- chunk: <name> ---` comment. Unnamed chunks are labeled
+ * "unnamed". Non-R engine chunks (python, sql, etc.) are skipped.
+ * Chunks are separated by a blank line.
+ *
+ * Returns empty string if no R chunks are present.
+ */
+export function extractRChunks(content: string): string {
+	const fenceRegex = /^```(\{[^\n]*\})\n([\s\S]*?)^```$/gm;
+	const parts: string[] = [];
+
+	let match: RegExpExecArray | null;
+	while ((match = fenceRegex.exec(content)) !== null) {
+		const infoString = match[1];
+		const body = match[2].replace(/\n$/, ""); // trim trailing newline
+
+		const meta = parseChunkHeader(infoString);
+		if (!meta || meta.engine !== "r") continue;
+
+		const name = meta.name ?? "unnamed";
+		parts.push(`# --- chunk: ${name} ---\n${body}`);
+	}
+
+	return parts.join("\n\n");
+}
+
 /** Split a string by commas, but don't split inside quoted substrings. */
 function splitRespectingQuotes(str: string): string[] {
 	const result: string[] = [];

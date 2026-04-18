@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseChunkHeader, isInlineRCode, extractInlineRExpression } from "../src/rmd-parser";
+import { parseChunkHeader, isInlineRCode, extractInlineRExpression, extractRChunks } from "../src/rmd-parser";
 
 describe("parseChunkHeader", () => {
 	it("returns null for standard (non-RMarkdown) language strings", () => {
@@ -170,5 +170,128 @@ describe("isInlineRCode edge cases", () => {
 
 	it("handles multiword expressions", () => {
 		expect(isInlineRCode("r mean(c(1,2,3))")).toBe(true);
+	});
+});
+
+describe("extractRChunks", () => {
+	it("returns empty string for content with no code blocks", () => {
+		expect(extractRChunks("Just some markdown text.")).toBe("");
+	});
+
+	it("returns empty string for content with no R chunks", () => {
+		const content = [
+			"Some text",
+			"```javascript",
+			"console.log('hi')",
+			"```",
+			"More text",
+		].join("\n");
+		expect(extractRChunks(content)).toBe("");
+	});
+
+	it("extracts a single unnamed R chunk", () => {
+		const content = [
+			"Before",
+			"```{r}",
+			"x <- 1",
+			"```",
+			"After",
+		].join("\n");
+		expect(extractRChunks(content)).toBe(
+			"# --- chunk: unnamed ---\nx <- 1"
+		);
+	});
+
+	it("extracts a single named R chunk", () => {
+		const content = [
+			"```{r setup}",
+			"library(dplyr)",
+			"```",
+		].join("\n");
+		expect(extractRChunks(content)).toBe(
+			"# --- chunk: setup ---\nlibrary(dplyr)"
+		);
+	});
+
+	it("extracts a named R chunk with options", () => {
+		const content = [
+			"```{r summary-stats, echo=FALSE}",
+			"summary(mtcars)",
+			"```",
+		].join("\n");
+		expect(extractRChunks(content)).toBe(
+			"# --- chunk: summary-stats ---\nsummary(mtcars)"
+		);
+	});
+
+	it("labels unnamed chunks with options as 'unnamed'", () => {
+		const content = [
+			"```{r, echo=FALSE}",
+			"secret <- 42",
+			"```",
+		].join("\n");
+		expect(extractRChunks(content)).toBe(
+			"# --- chunk: unnamed ---\nsecret <- 42"
+		);
+	});
+
+	it("joins multiple R chunks with a blank line", () => {
+		const content = [
+			"```{r a}",
+			"x <- 1",
+			"```",
+			"Some prose.",
+			"```{r b}",
+			"y <- 2",
+			"```",
+		].join("\n");
+		expect(extractRChunks(content)).toBe(
+			"# --- chunk: a ---\nx <- 1\n\n# --- chunk: b ---\ny <- 2"
+		);
+	});
+
+	it("skips non-R engine chunks", () => {
+		const content = [
+			"```{r r-chunk}",
+			"x <- 1",
+			"```",
+			"```{python}",
+			"print('hi')",
+			"```",
+			"```{sql}",
+			"SELECT 1",
+			"```",
+		].join("\n");
+		expect(extractRChunks(content)).toBe(
+			"# --- chunk: r-chunk ---\nx <- 1"
+		);
+	});
+
+	it("preserves multi-line chunk bodies", () => {
+		const content = [
+			"```{r}",
+			"x <- 1:10",
+			"y <- x * 2",
+			"mean(y)",
+			"```",
+		].join("\n");
+		expect(extractRChunks(content)).toBe(
+			"# --- chunk: unnamed ---\nx <- 1:10\ny <- x * 2\nmean(y)"
+		);
+	});
+
+	it("handles tilde-fenced blocks (alternate fence syntax)", () => {
+		// Some RMarkdown files use ~~~ instead of ``` for fences.
+		// Reading RStudio-authored files, they always use backticks, but we
+		// should not crash on tildes. The implementation may or may not
+		// support tildes — if it doesn't, it should simply return "".
+		const content = [
+			"~~~{r}",
+			"x <- 1",
+			"~~~",
+		].join("\n");
+		// Either support tildes OR return empty string — both acceptable.
+		// Write test against the simpler "backticks only" behavior:
+		expect(extractRChunks(content)).toBe("");
 	});
 });
