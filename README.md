@@ -77,13 +77,27 @@ Available in the command palette when an `.rmd`/`.Rmd` file is active:
 | **Open in RStudio** | Launches RStudio with the current file. |
 | **Render document** | Runs `rmarkdown::render()` via `Rscript`, then opens the generated output (HTML/PDF/etc.). |
 | **Reveal .Rproj in Finder/Explorer** | Walks up from the current file to find the nearest `.Rproj` file and reveals it in your OS file manager. |
-| **Copy R chunks to clipboard** | Extracts all R code chunks into a plain R script (chunk names appear as comments) and copies to clipboard. |
+| **Copy R chunks to clipboard** | Extracts all R code chunks verbatim (preserving the `` ```{r …} `` fences) and copies to clipboard. |
 
 ## Requirements
 
 - **Desktop only.** Commands that launch RStudio or run R (`Render document`) use Node `child_process` and Electron APIs, which Obsidian exposes only on desktop. The plugin is marked `isDesktopOnly` accordingly.
 - **For `Open in RStudio`:** RStudio must be installed. On macOS, the plugin uses `open -a RStudio`; on Linux/Windows, `rstudio` must be on your system `PATH`.
-- **For `Render document`:** R and the `rmarkdown` package must be installed, and `Rscript` must be on your system `PATH`.
+- **For `Render document`:** R and the `rmarkdown` package must be installed. `Rscript` and `pandoc` must be locatable by the plugin — on macOS the plugin probes common install locations (`/usr/local/bin`, `/opt/homebrew/bin`, RStudio's app bundle) because Obsidian does not inherit your shell `PATH`. On Linux/Windows, `Rscript` must be on `PATH` (the R installer usually handles this on Windows).
+
+### Render errors
+
+The `Render document` command runs your `.rmd` through `rmarkdown::render()` exactly as RStudio would. If the render fails, you will see a **Notice** showing the exit code (e.g. "Render failed (exit 1)") and the full R stderr will be logged to Obsidian's developer console (**Cmd+Opt+I** on macOS, **Ctrl+Shift+I** on Linux/Windows).
+
+Common causes are **not** plugin bugs — they're R-side issues. The plugin will not auto-install anything for you. The render halts on whatever R or knitr encounters first:
+
+- **Missing R package:** `Error in library(foo) : there is no package called 'foo'`. Fix by running `install.packages("foo")` in R.
+- **Missing Python for `{python}` chunks:** the `reticulate` package must be installed **and** a working Python interpreter must be available to it. If reticulate's auto-install of Python fails (cache cleanup, sandboxing, etc.), set `RETICULATE_PYTHON` to an existing interpreter or call `reticulate::use_python()` in a setup chunk.
+- **Missing SQL driver or connection object** for `{sql}` chunks: provide a `connection=<DBI connection>` chunk option against a pre-opened connection.
+- **LaTeX/TinyTeX not installed** if rendering to PDF: `tinytex::install_tinytex()` in R.
+- **System-library dependencies** (e.g. GDAL for `sf`, a JDK for `rJava`) must be installed at the OS level separately from R packages.
+
+Any uninstalled R package or missing language runtime (Python, SQL driver, LaTeX) that one of your chunks references will cause the render to exit with a non-zero code. Check the console stderr for the exact line that failed and the fix will almost always be an `install.packages(...)` call or a system-level install — not a change to this plugin.
 
 ## Development
 
