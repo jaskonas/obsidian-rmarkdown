@@ -38,8 +38,15 @@ export function renderDocument(filePath: string): void {
     new Notice("Rendering RMarkdown… this may take a moment.");
 
     const rCode = `rmarkdown::render(${JSON.stringify(filePath)})`;
+    const pandocDir = resolvePandocDir();
+    const env = {
+        ...process.env,
+        ...(pandocDir ? { RSTUDIO_PANDOC: pandocDir } : {}),
+    };
+
     const child = spawn(resolveRscriptPath(), ["-e", rCode], {
         cwd: path.dirname(filePath),
+        env,
     });
 
     let stderr = "";
@@ -123,6 +130,31 @@ function resolveRscriptPath(): string {
         }
     }
     return "Rscript";
+}
+
+/**
+ * Resolve the directory containing a pandoc binary. R's rmarkdown package reads
+ * the RSTUDIO_PANDOC environment variable to locate pandoc when it isn't on PATH.
+ * This is the same mechanism RStudio itself uses. We probe standalone installs
+ * first, then RStudio's bundled pandoc inside its app bundle.
+ */
+function resolvePandocDir(): string | null {
+    const candidates = [
+        "/usr/local/bin",
+        "/opt/homebrew/bin",
+        "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64",
+        "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/x86_64",
+        "/Applications/RStudio.app/Contents/MacOS",
+        "/Applications/RStudio.app/Contents/Resources/app/bin",
+    ];
+    for (const dir of candidates) {
+        try {
+            if (fs.existsSync(path.join(dir, "pandoc"))) return dir;
+        } catch {
+            // ignore and continue
+        }
+    }
+    return null;
 }
 
 function findNearestRProj(startDir: string, vaultRoot: string): string | null {
