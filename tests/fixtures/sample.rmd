@@ -1,0 +1,83 @@
+---
+title: "Sample RMarkdown Document"
+author: "Test Author"
+date: "2026-04-13"
+output: html_document
+params:
+  year: 2026
+---
+
+## Introduction
+
+This is a sample RMarkdown document for testing the Obsidian plugin.
+It contains various R code chunk types and inline R expressions.
+
+## Basic R Code Chunk
+
+```{r}
+x <- 1:10
+mean(x)
+```
+
+## Named Chunk with Options
+
+```{r summary-stats, echo=TRUE, message=FALSE}
+library(dplyr)
+mtcars %>%
+  group_by(cyl) %>%
+  summarise(avg_mpg = mean(mpg))
+```
+
+## Plot Chunk
+
+```{r my-plot, fig.width=8, fig.height=6, fig.cap="A scatter plot"}
+plot(mtcars$wt, mtcars$mpg,
+     xlab = "Weight", ylab = "MPG",
+     main = "Weight vs MPG")
+```
+
+## Hidden Chunk (echo=FALSE)
+
+```{r, echo=FALSE}
+secret_value <- 42
+```
+
+## Python Engine
+
+```{python}
+import pandas as pd
+df = pd.DataFrame({"a": [1, 2, 3]})
+print(df)
+```
+
+## SQL Engine
+
+```{sql, connection=con, output.var="result"}
+SELECT * FROM my_table WHERE year = 2026
+```
+
+## Inline R Code
+
+The dataset has `r nrow(mtcars)` observations and `r ncol(mtcars)` variables.
+The mean MPG is `r round(mean(mtcars$mpg), 2)`.
+
+## Standard Markdown Features
+
+These should render normally:
+
+- **Bold text** and *italic text*
+- [A link](https://example.com)
+- An image: ![alt text](image.png)
+
+### Code block (non-R)
+
+```javascript
+console.log("This is not R code");
+```
+
+> A blockquote should render normally too.
+
+| Column A | Column B |
+|----------|----------|
+| 1        | 2        |
+| 3        | 4        |
