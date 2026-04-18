@@ -110,7 +110,8 @@ function findNearestRProj(startDir: string, vaultRoot: string): string | null {
         if (dir === root) return null;
         const parent = path.dirname(dir);
         if (parent === dir) return null; // filesystem root
-        if (!parent.startsWith(root)) return null; // escaped the vault
+        const rel = path.relative(root, parent);
+        if (rel.startsWith("..") || path.isAbsolute(rel)) return null; // escaped the vault
         dir = parent;
     }
 }

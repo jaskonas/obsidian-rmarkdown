@@ -1,4 +1,4 @@
-import { MarkdownView, Plugin, TFile } from "obsidian";
+import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
 import { rmarkdownPostProcessor } from "./post-processor";
 import {
     openInRStudio,
@@ -71,9 +71,14 @@ export default class RMarkdownPlugin extends Plugin {
                 const file = view?.file ?? this.app.workspace.getActiveFile();
                 if (!isRmdFile(file)) return false;
                 if (checking) return true;
-                this.app.vault.read(file).then((content) => {
-                    copyRChunksToClipboard(content);
-                });
+                void (async () => {
+                    try {
+                        const content = await this.app.vault.read(file);
+                        await copyRChunksToClipboard(content);
+                    } catch (err) {
+                        new Notice(`Copy R chunks failed: ${err instanceof Error ? err.message : String(err)}`);
+                    }
+                })();
                 return true;
             },
         });
