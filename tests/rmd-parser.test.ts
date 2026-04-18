@@ -198,7 +198,7 @@ describe("extractRChunks", () => {
 			"After",
 		].join("\n");
 		expect(extractRChunks(content)).toBe(
-			"# --- chunk: unnamed ---\nx <- 1"
+			"```{r}\nx <- 1\n```"
 		);
 	});
 
@@ -209,7 +209,7 @@ describe("extractRChunks", () => {
 			"```",
 		].join("\n");
 		expect(extractRChunks(content)).toBe(
-			"# --- chunk: setup ---\nlibrary(dplyr)"
+			"```{r setup}\nlibrary(dplyr)\n```"
 		);
 	});
 
@@ -220,18 +220,18 @@ describe("extractRChunks", () => {
 			"```",
 		].join("\n");
 		expect(extractRChunks(content)).toBe(
-			"# --- chunk: summary-stats ---\nsummary(mtcars)"
+			"```{r summary-stats, echo=FALSE}\nsummary(mtcars)\n```"
 		);
 	});
 
-	it("labels unnamed chunks with options as 'unnamed'", () => {
+	it("extracts unnamed chunk with options verbatim", () => {
 		const content = [
 			"```{r, echo=FALSE}",
 			"secret <- 42",
 			"```",
 		].join("\n");
 		expect(extractRChunks(content)).toBe(
-			"# --- chunk: unnamed ---\nsecret <- 42"
+			"```{r, echo=FALSE}\nsecret <- 42\n```"
 		);
 	});
 
@@ -246,7 +246,7 @@ describe("extractRChunks", () => {
 			"```",
 		].join("\n");
 		expect(extractRChunks(content)).toBe(
-			"# --- chunk: a ---\nx <- 1\n\n# --- chunk: b ---\ny <- 2"
+			"```{r a}\nx <- 1\n```\n\n```{r b}\ny <- 2\n```"
 		);
 	});
 
@@ -263,7 +263,7 @@ describe("extractRChunks", () => {
 			"```",
 		].join("\n");
 		expect(extractRChunks(content)).toBe(
-			"# --- chunk: r-chunk ---\nx <- 1"
+			"```{r r-chunk}\nx <- 1\n```"
 		);
 	});
 
@@ -276,7 +276,7 @@ describe("extractRChunks", () => {
 			"```",
 		].join("\n");
 		expect(extractRChunks(content)).toBe(
-			"# --- chunk: unnamed ---\nx <- 1:10\ny <- x * 2\nmean(y)"
+			"```{r}\nx <- 1:10\ny <- x * 2\nmean(y)\n```"
 		);
 	});
 

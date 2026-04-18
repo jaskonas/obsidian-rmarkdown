@@ -62,9 +62,9 @@ export function extractInlineRExpression(text: string): string | null {
  * Extract all R code chunks from an RMarkdown document source.
  *
  * Returns a single string with each R chunk preceded by a
- * `# --- chunk: <name> ---` comment. Unnamed chunks are labeled
- * "unnamed". Non-R engine chunks (python, sql, etc.) are skipped.
- * Chunks are separated by a blank line.
+ * verbatim (opening fence + info string, body, closing fence). Non-R
+ * engine chunks (python, sql, etc.) are skipped. Chunks are separated
+ * by a blank line.
  *
  * Returns empty string if no R chunks are present.
  */
@@ -80,8 +80,7 @@ export function extractRChunks(content: string): string {
 		const meta = parseChunkHeader(infoString);
 		if (!meta || meta.engine !== "r") continue;
 
-		const name = meta.name ?? "unnamed";
-		parts.push(`# --- chunk: ${name} ---\n${body}`);
+		parts.push(`\`\`\`${infoString}\n${body}\n\`\`\``);
 	}
 
 	return parts.join("\n\n");
