@@ -106,3 +106,69 @@ describe("extractInlineRExpression", () => {
 		expect(extractInlineRExpression("")).toBeNull();
 	});
 });
+
+describe("parseChunkHeader edge cases", () => {
+	it("handles chunk with only spaces inside braces: {r  }", () => {
+		expect(parseChunkHeader("{r  }")).toEqual({
+			engine: "r",
+			name: null,
+			options: {},
+		});
+	});
+
+	it("handles option values containing equals: {r, eval=1+1==2}", () => {
+		expect(parseChunkHeader("{r, eval=1+1==2}")).toEqual({
+			engine: "r",
+			name: null,
+			options: { eval: "1+1==2" },
+		});
+	});
+
+	it("handles single-quoted option values: {r, fig.cap='Title'}", () => {
+		expect(parseChunkHeader("{r, fig.cap='Title'}")).toEqual({
+			engine: "r",
+			name: null,
+			options: { "fig.cap": "'Title'" },
+		});
+	});
+
+	it("handles chunk name with underscores: {r my_chunk_name}", () => {
+		expect(parseChunkHeader("{r my_chunk_name}")).toEqual({
+			engine: "r",
+			name: "my_chunk_name",
+			options: {},
+		});
+	});
+
+	it("handles chunk name with dots: {r fig.setup}", () => {
+		// Note: "fig.setup" has no = sign, so it's a name not an option
+		expect(parseChunkHeader("{r fig.setup}")).toEqual({
+			engine: "r",
+			name: "fig.setup",
+			options: {},
+		});
+	});
+
+	it("rejects malformed headers: missing closing brace", () => {
+		expect(parseChunkHeader("{r setup")).toBeNull();
+	});
+
+	it("rejects malformed headers: missing opening brace", () => {
+		expect(parseChunkHeader("r setup}")).toBeNull();
+	});
+});
+
+describe("isInlineRCode edge cases", () => {
+	it("rejects 'r' followed by no space", () => {
+		expect(isInlineRCode("return")).toBe(false);
+		expect(isInlineRCode("result")).toBe(false);
+	});
+
+	it("rejects 'r ' with only whitespace after", () => {
+		expect(isInlineRCode("r   ")).toBe(false);
+	});
+
+	it("handles multiword expressions", () => {
+		expect(isInlineRCode("r mean(c(1,2,3))")).toBe(true);
+	});
+});
