@@ -84,7 +84,7 @@ The "Create new RMarkdown document" command is always available. The other four 
 
 - **Desktop only.** Commands that launch RStudio or run R (`Render document`) use Node `child_process` and Electron APIs, which Obsidian exposes only on desktop. The plugin is marked `isDesktopOnly` accordingly.
 - **For `Open in RStudio`:** RStudio must be installed. On macOS, the plugin uses `open -a RStudio`; on Linux/Windows, `rstudio` must be on your system `PATH`.
-- **For `Render document`:** R and the `rmarkdown` package must be installed. `Rscript` and `pandoc` must be locatable by the plugin — on macOS the plugin probes common install locations (`/usr/local/bin`, `/opt/homebrew/bin`, RStudio's app bundle) because Obsidian does not inherit your shell `PATH`. On Linux/Windows, `Rscript` must be on `PATH` (the R installer usually handles this on Windows).
+- **For `Render document`:** R and the `rmarkdown` package must be installed. `Rscript` and `pandoc` must be locatable by the plugin. The plugin probes common install locations so you usually don't need to do anything extra: on macOS it checks `/usr/local/bin`, `/opt/homebrew/bin`, and RStudio's app bundle; on Windows it checks standard `Program Files` locations for RStudio's bundled pandoc and the standalone Pandoc installer. If your setup differs, ensure `Rscript` and `pandoc` are on the `PATH` Obsidian inherits. The Windows R installer has an optional "Add to PATH" checkbox that is off by default — tick it during install, or add `C:\Program Files\R\R-<version>\bin` to your PATH manually.
 
 ### Render errors
 

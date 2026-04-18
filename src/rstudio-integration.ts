@@ -61,9 +61,13 @@ export function renderDocument(filePath: string): void {
     child.on("error", (err) => {
         const e = err as NodeJS.ErrnoException;
         if (e.code === "ENOENT") {
-            new Notice(
-                "Render failed: Rscript not found. Install R, or ensure it is on PATH / in a standard location (/usr/local/bin, /opt/homebrew/bin, or /Library/Frameworks/R.framework/Resources/bin)."
-            );
+            const hint =
+                process.platform === "win32"
+                    ? "Install R and ensure the R installer's 'Add to PATH' option was checked, or add Rscript.exe's directory (typically C:\\Program Files\\R\\R-<version>\\bin) to your PATH."
+                    : process.platform === "darwin"
+                    ? "Install R, or ensure it is on PATH / in a standard location (/usr/local/bin, /opt/homebrew/bin, or /Library/Frameworks/R.framework/Resources/bin)."
+                    : "Install R and ensure Rscript is on your PATH.";
+            new Notice(`Render failed: Rscript not found. ${hint}`);
         } else {
             new Notice(`Render failed to start: ${err.message}`);
         }
@@ -135,21 +139,37 @@ function resolveRscriptPath(): string {
 /**
  * Resolve the directory containing a pandoc binary. R's rmarkdown package reads
  * the RSTUDIO_PANDOC environment variable to locate pandoc when it isn't on PATH.
- * This is the same mechanism RStudio itself uses. We probe standalone installs
- * first, then RStudio's bundled pandoc inside its app bundle.
+ * This is the same mechanism RStudio itself uses. We probe platform-specific
+ * standalone installs first, then RStudio's bundled pandoc.
  */
 function resolvePandocDir(): string | null {
-    const candidates = [
-        "/usr/local/bin",
-        "/opt/homebrew/bin",
-        "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64",
-        "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/x86_64",
-        "/Applications/RStudio.app/Contents/MacOS",
-        "/Applications/RStudio.app/Contents/Resources/app/bin",
-    ];
+    const isWindows = process.platform === "win32";
+    const binaryName = isWindows ? "pandoc.exe" : "pandoc";
+
+    const candidates = isWindows
+        ? [
+              // RStudio's bundled pandoc via Quarto (Windows 64-bit)
+              "C:\\Program Files\\RStudio\\resources\\app\\quarto\\bin\\tools\\pandoc",
+              "C:\\Program Files\\RStudio\\resources\\app\\quarto\\bin",
+              "C:\\Program Files\\RStudio\\bin\\pandoc",
+              // Standalone pandoc installer default location
+              "C:\\Program Files\\Pandoc",
+              // 32-bit fallback locations
+              "C:\\Program Files (x86)\\RStudio\\bin\\pandoc",
+              "C:\\Program Files (x86)\\Pandoc",
+          ]
+        : [
+              "/usr/local/bin",
+              "/opt/homebrew/bin",
+              "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64",
+              "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/x86_64",
+              "/Applications/RStudio.app/Contents/MacOS",
+              "/Applications/RStudio.app/Contents/Resources/app/bin",
+          ];
+
     for (const dir of candidates) {
         try {
-            if (fs.existsSync(path.join(dir, "pandoc"))) return dir;
+            if (fs.existsSync(path.join(dir, binaryName))) return dir;
         } catch {
             // ignore and continue
         }
