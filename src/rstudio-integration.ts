@@ -2,15 +2,8 @@ import { Notice } from "obsidian";
 import { spawn } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
+import { shell } from "electron";
 import { extractRChunks } from "./rmd-parser";
-
-// electron is an esbuild external resolved at runtime by Obsidian's desktop
-// environment. We use a typed require() here to avoid needing @types/electron.
-interface ElectronShell {
-    openPath(path: string): Promise<string>;
-    showItemInFolder(fullPath: string): void;
-}
-const shell: ElectronShell = (require("electron") as { shell: ElectronShell }).shell;
 
 /**
  * Launch RStudio with the given .rmd file.
@@ -186,7 +179,7 @@ function findNearestRProj(startDir: string, vaultRoot: string): string | null {
             const entries = fs.readdirSync(dir);
             const hit = entries.find((e) => e.toLowerCase().endsWith(".rproj"));
             if (hit) return path.join(dir, hit);
-        } catch (_) {
+        } catch {
             return null;
         }
 

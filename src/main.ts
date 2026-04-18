@@ -1,4 +1,5 @@
 import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
+import * as path from "path";
 import { rmarkdownPostProcessor } from "./post-processor";
 import {
     openInRStudio,
@@ -16,7 +17,7 @@ function isRmdFile(file: TFile | null): file is TFile {
 }
 
 export default class RMarkdownPlugin extends Plugin {
-    async onload(): Promise<void> {
+    onload(): void {
         // Register .rmd and .Rmd so Obsidian treats them as markdown files.
         this.registerExtensions(RMD_EXTENSIONS, "markdown");
 
@@ -132,7 +133,6 @@ export default class RMarkdownPlugin extends Plugin {
         };
         if (typeof adapter.getBasePath !== "function") return null;
         const base = adapter.getBasePath();
-        const path = require("path") as typeof import("path");
         return path.join(base, file.path);
     }
 
