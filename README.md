@@ -70,7 +70,7 @@ This is a limitation of Obsidian's markdown parser, not the plugin. A future ver
 
 ## Commands
 
-Available in the command palette when an `.rmd`/`.Rmd` file is active:
+The "Create new RMarkdown document" command is always available. The other four require an `.rmd`/`.Rmd` file to be active in the editor.
 
 | Command | What it does |
 |---------|--------------|
