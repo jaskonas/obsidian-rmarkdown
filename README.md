@@ -47,7 +47,7 @@ On top of that, a **markdown post-processor** enhances the reading view:
 | Inline R code | Yes | Badge display in reading view |
 | Standard markdown | Yes | Handled by Obsidian natively |
 | LaTeX math (`$...$`, `$$...$$`) | Yes | Handled by Obsidian natively |
-| R code execution | No | Display only — use RStudio to execute |
+| R code execution | Via command | Use the "Render document" command to run `rmarkdown::render()`. |
 
 ## Known Limitations
 
@@ -67,6 +67,23 @@ Pandoc handles this via its smart-quotes extension, converting `` `foo' `` to pr
 - Use typographic curly quotes directly
 
 This is a limitation of Obsidian's markdown parser, not the plugin. A future version may add optional Pandoc-style smart-quote preprocessing.
+
+## Commands
+
+Available in the command palette when an `.rmd`/`.Rmd` file is active:
+
+| Command | What it does |
+|---------|--------------|
+| **Open in RStudio** | Launches RStudio with the current file. |
+| **Render document** | Runs `rmarkdown::render()` via `Rscript`, then opens the generated output (HTML/PDF/etc.). |
+| **Reveal .Rproj in Finder/Explorer** | Walks up from the current file to find the nearest `.Rproj` file and reveals it in your OS file manager. |
+| **Copy R chunks to clipboard** | Extracts all R code chunks into a plain R script (chunk names appear as comments) and copies to clipboard. |
+
+## Requirements
+
+- **Desktop only.** Commands that launch RStudio or run R (`Render document`) use Node `child_process` and Electron APIs, which Obsidian exposes only on desktop. The plugin is marked `isDesktopOnly` accordingly.
+- **For `Open in RStudio`:** RStudio must be installed. On macOS, the plugin uses `open -a RStudio`; on Linux/Windows, `rstudio` must be on your system `PATH`.
+- **For `Render document`:** R and the `rmarkdown` package must be installed, and `Rscript` must be on your system `PATH`.
 
 ## Development
 
