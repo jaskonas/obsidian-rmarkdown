@@ -38,7 +38,7 @@ export function renderDocument(filePath: string): void {
     new Notice("Rendering RMarkdown… this may take a moment.");
 
     const rCode = `rmarkdown::render(${JSON.stringify(filePath)})`;
-    const child = spawn("Rscript", ["-e", rCode], {
+    const child = spawn(resolveRscriptPath(), ["-e", rCode], {
         cwd: path.dirname(filePath),
     });
 
@@ -52,7 +52,14 @@ export function renderDocument(filePath: string): void {
     });
 
     child.on("error", (err) => {
-        new Notice(`Render failed to start: ${err.message}`);
+        const e = err as NodeJS.ErrnoException;
+        if (e.code === "ENOENT") {
+            new Notice(
+                "Render failed: Rscript not found. Install R, or ensure it is on PATH / in a standard location (/usr/local/bin, /opt/homebrew/bin, or /Library/Frameworks/R.framework/Resources/bin)."
+            );
+        } else {
+            new Notice(`Render failed to start: ${err.message}`);
+        }
     });
 
     child.on("close", (code) => {
@@ -92,6 +99,30 @@ export function revealRProj(filePath: string, vaultRoot: string): void {
         return;
     }
     shell.showItemInFolder(rproj);
+}
+
+/**
+ * Resolve the Rscript executable path. On macOS, Obsidian inherits launchctl's
+ * PATH which typically excludes /usr/local/bin and /opt/homebrew/bin where R is
+ * installed. This helper probes common install locations and falls back to
+ * "Rscript" (relying on PATH) when nothing is found — which works for Linux
+ * and Windows where the R installer usually adds the binary to PATH.
+ */
+function resolveRscriptPath(): string {
+    const candidates = [
+        "/usr/local/bin/Rscript",
+        "/opt/homebrew/bin/Rscript",
+        "/Library/Frameworks/R.framework/Resources/bin/Rscript",
+        "/usr/bin/Rscript",
+    ];
+    for (const p of candidates) {
+        try {
+            if (fs.existsSync(p)) return p;
+        } catch {
+            // ignore and continue
+        }
+    }
+    return "Rscript";
 }
 
 function findNearestRProj(startDir: string, vaultRoot: string): string | null {
