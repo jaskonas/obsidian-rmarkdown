@@ -78,6 +78,7 @@ Available in the command palette when an `.rmd`/`.Rmd` file is active:
 | **Render document** | Runs `rmarkdown::render()` via `Rscript`, then opens the generated output (HTML/PDF/etc.). |
 | **Reveal .Rproj in Finder/Explorer** | Walks up from the current file to find the nearest `.Rproj` file and reveals it in your OS file manager. |
 | **Copy R chunks to clipboard** | Extracts all R code chunks verbatim (preserving the `` ```{r …} `` fences) and copies to clipboard. |
+| **Create new RMarkdown document** | Creates a new `.rmd` file seeded with RStudio's default `html_document` template and opens it. Placed in the active file's folder (or vault root), named `Untitled.rmd` with numeric suffixes for collisions. |
 
 ## Requirements
 

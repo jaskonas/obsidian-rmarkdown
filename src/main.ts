@@ -6,6 +6,7 @@ import {
     revealRProj,
     copyRChunksToClipboard,
 } from "./rstudio-integration";
+import { nextAvailableName, defaultRmdTemplate } from "./templates";
 
 const RMD_EXTENSIONS = ["rmd", "Rmd"];
 
@@ -82,6 +83,43 @@ export default class RMarkdownPlugin extends Plugin {
                 return true;
             },
         });
+
+        this.addCommand({
+            id: "create-new-rmarkdown",
+            name: "Create new RMarkdown document",
+            callback: async () => {
+                try {
+                    await this.createNewRmdDocument();
+                } catch (err) {
+                    new Notice(`Create RMarkdown failed: ${err instanceof Error ? err.message : String(err)}`);
+                }
+            },
+        });
+    }
+
+    private async createNewRmdDocument(): Promise<void> {
+        const activeFile = this.app.workspace.getActiveFile();
+        const parent = activeFile?.parent ?? this.app.vault.getRoot();
+
+        // Build an existence predicate against the parent folder's children.
+        const existing = new Set(
+            parent.children.map((c) => c.name)
+        );
+        const filename = nextAvailableName("Untitled", "rmd", (name) =>
+            existing.has(name)
+        );
+
+        const fullPath =
+            parent.path === "/" || parent.path === ""
+                ? filename
+                : `${parent.path}/${filename}`;
+
+        const date = new Date().toISOString().slice(0, 10);
+        const content = defaultRmdTemplate(date);
+
+        const file = await this.app.vault.create(fullPath, content);
+        await this.app.workspace.getLeaf(false).openFile(file);
+        new Notice(`Created ${file.name}`);
     }
 
     /**
