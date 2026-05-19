@@ -71,40 +71,39 @@ function processCodeBlocks(
 
 		// --- Enhance the code block ---
 
-		// Wrap pre in a container div for styling
-		const wrapper = document.createElement("div");
-		wrapper.classList.add("rmd-code-chunk");
+		// Wrap pre in a container div for styling. We use Obsidian's
+		// createDiv() helper (which appends to the parent) and then move
+		// the wrapper into position just before <pre>.
+		const parent = pre.parentElement!;
+		const wrapper = parent.createDiv({ cls: "rmd-code-chunk" });
 		wrapper.dataset.engine = meta.engine;
-		pre.parentElement!.insertBefore(wrapper, pre);
-		wrapper.appendChild(pre);
+		parent.insertBefore(wrapper, pre);
 
-		// Add a chunk header label above the code
-		const header = document.createElement("div");
-		header.classList.add("rmd-chunk-header");
+		// Build the chunk header inside the wrapper (before we move pre in,
+		// so header naturally precedes pre).
+		const header = wrapper.createDiv({ cls: "rmd-chunk-header" });
 
-		const engineBadge = document.createElement("span");
-		engineBadge.classList.add("rmd-engine-badge");
-		engineBadge.textContent = meta.engine.toUpperCase();
-		header.appendChild(engineBadge);
+		header.createSpan({
+			cls: "rmd-engine-badge",
+			text: meta.engine.toUpperCase(),
+		});
 
 		if (meta.name) {
-			const nameSpan = document.createElement("span");
-			nameSpan.classList.add("rmd-chunk-name");
-			nameSpan.textContent = meta.name;
-			header.appendChild(nameSpan);
+			header.createSpan({ cls: "rmd-chunk-name", text: meta.name });
 		}
 
 		const optionKeys = Object.keys(meta.options);
 		if (optionKeys.length > 0) {
-			const optsSpan = document.createElement("span");
-			optsSpan.classList.add("rmd-chunk-options");
-			optsSpan.textContent = optionKeys
-				.map((k) => `${k}=${meta.options[k]}`)
-				.join(", ");
-			header.appendChild(optsSpan);
+			header.createSpan({
+				cls: "rmd-chunk-options",
+				text: optionKeys
+					.map((k) => `${k}=${meta.options[k]}`)
+					.join(", "),
+			});
 		}
 
-		wrapper.insertBefore(header, pre);
+		// Now move pre into wrapper, after the header.
+		wrapper.appendChild(pre);
 
 		// Fix syntax highlighting class to plain engine name
 		codeEl.className = `language-${meta.engine}`;
@@ -126,14 +125,9 @@ function processInlineCode(el: HTMLElement): void {
 		if (!expr) continue;
 
 		codeEl.classList.add("rmd-inline-r");
-		codeEl.textContent = "";
+		codeEl.empty();
 
-		const badge = document.createElement("span");
-		badge.classList.add("rmd-inline-badge");
-		badge.textContent = "R";
-		codeEl.appendChild(badge);
-
-		const exprNode = document.createTextNode(` ${expr}`);
-		codeEl.appendChild(exprNode);
+		codeEl.createSpan({ cls: "rmd-inline-badge", text: "R" });
+		codeEl.appendText(` ${expr}`);
 	}
 }
