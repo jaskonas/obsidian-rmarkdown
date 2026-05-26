@@ -7,6 +7,10 @@ on:
 
 permissions:
   contents: write
+  # Needed so the workflow can mint an OIDC token and record an
+  # attestation. See https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds
+  id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -28,6 +32,13 @@ jobs:
 
       - name: Build plugin
         run: npm run build
+
+      - name: Generate build provenance attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
 
       - name: Create release
         env:
